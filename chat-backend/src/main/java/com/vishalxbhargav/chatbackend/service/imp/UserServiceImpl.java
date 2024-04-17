@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
     public User updateUser(Integer userId, UpdateUserRequest req) throws UserException {
         User user =findUserById(userId);
         if(req.getFull_name()!=null) user.setFull_name(req.getFull_name());
-        if(req.getProfile_picture()!=null) user.setProfile_Picture(req.getProfile_picture());
+        if(req.getProfile_picture()!=null) user.setProfile_picture(req.getProfile_picture());
         return userRepository.save(user);
     }
 

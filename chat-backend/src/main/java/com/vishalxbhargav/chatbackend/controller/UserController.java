@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequiredArgsConstructor
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
     @Autowired
-    private final UserService userService;
+    private  UserService userService;
     @GetMapping("/profile")
     public ResponseEntity<User> getUserProfileHandler(@RequestHeader("Authorization") String token) throws UserException {
         User user=userService.findUserProfile(token);
@@ -29,7 +29,7 @@ public class UserController {
         List<User> users =userService.searchUser(query);
         return new ResponseEntity<List<User>>(users,HttpStatus.OK);
     }
-    @PostMapping
+    @PostMapping("/update")
     public ResponseEntity<ApiResponse> updateUserHandler(@RequestBody UpdateUserRequest req,@RequestHeader("Authorization") String token) throws UserException {
         User user=userService.findUserProfile(token);
         userService.updateUser(user.getId(),req);
