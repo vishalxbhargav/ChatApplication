@@ -1,9 +1,14 @@
 package com.vishalxbhargav.chatbackend.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.*;
-
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Chat {
     @Id
@@ -18,6 +23,8 @@ public class Chat {
     private User createdBy;
     @ManyToMany
     private Set<User> users=new HashSet<>();
+    @ManyToMany
+    private Set<User> admins=new HashSet<>();
     @OneToMany
     private List<Message> messages= new ArrayList<>();
 

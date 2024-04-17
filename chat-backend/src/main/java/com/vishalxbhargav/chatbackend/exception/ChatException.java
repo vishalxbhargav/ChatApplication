@@ -1,7 +1,7 @@
 package com.vishalxbhargav.chatbackend.exception;
 
 public class ChatException extends Exception{
-    ChatException(String message){
+    public ChatException(String message){
         super(message);
     }
 }
