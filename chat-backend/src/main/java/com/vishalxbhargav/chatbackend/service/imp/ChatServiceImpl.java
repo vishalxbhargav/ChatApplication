@@ -54,6 +54,7 @@ public class ChatServiceImpl implements ChatService {
         group.setChat_name(req.getChat_name());
         group.setCreatedBy(reqUser);
         group.getAdmins().add(reqUser);
+        group.getUsers().add(reqUser);
         for(Integer userId:req.getUsers())
             group.getUsers().add(userService.findUserById(userId));
         return chatRepository.save(group);
@@ -105,9 +106,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public Chat deleteChat(Integer chatId, Integer userId) throws UserException, ChatException {
+    public void deleteChat(Integer chatId, Integer userId) throws UserException, ChatException {
         Optional<Chat> opt =chatRepository.findById(chatId);
         opt.ifPresent(chat -> chatRepository.deleteById(chat.getId()));
-        return null;
     }
 }

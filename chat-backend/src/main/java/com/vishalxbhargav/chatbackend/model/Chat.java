@@ -27,7 +27,6 @@ public class Chat {
     private Set<User> admins=new HashSet<>();
     @OneToMany
     private List<Message> messages= new ArrayList<>();
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

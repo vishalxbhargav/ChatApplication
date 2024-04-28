@@ -29,7 +29,7 @@ public class UserController {
         List<User> users =userService.searchUser(query);
         return new ResponseEntity<List<User>>(users,HttpStatus.OK);
     }
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ResponseEntity<ApiResponse> updateUserHandler(@RequestBody UpdateUserRequest req,@RequestHeader("Authorization") String token) throws UserException {
         User user=userService.findUserProfile(token);
         userService.updateUser(user.getId(),req);
