@@ -17,6 +17,8 @@ import toast from 'react-hot-toast'
 import { currentUser ,logout, searchUser} from '../redux/Auth/Action'
 import { createChat,getUsersChat } from '../redux/Chat/Action'
 import { createMessage, getAllMessage } from '../redux/Message/Action'
+import SockJS from 'sockjs-client/dist/sockjs'
+import {over} from 'stompjs'
 
 export default function HomePage() {
   const navigate=useNavigate();
@@ -25,6 +27,9 @@ export default function HomePage() {
   const [isProfile,setIsProfile]=useState(null);
   const [currentChat,setCurrentChat]=useState(null);
   const [isGroup,setIsGroup]=useState(false);
+  const [stopclient,setStompclient]=useState();
+  const [isConnect,setIsConnect]=useState(false);
+  const [messages,setMessages]=useState([]);
   const {auth,chat,message}=useSelector(store=>store);
   const dispatch=useDispatch();
  
@@ -37,6 +42,35 @@ export default function HomePage() {
     setCurrentChat(true)
     console.log("create caht",full_name)
   }
+
+  const connect=()=>{
+    const sock=new SockJS("http://localhost:8080/ws");
+    const temp=over(sock);
+    setStompclient(temp);
+    const header={
+      Authorization:`Bearer ${token}`,
+      "X-XSRF-TOKEN":getCookies("XSRF-TOKEN")
+    }
+    temp.connect(header,onConnect,onError);
+  }
+  function getCookies(name){
+    const value=`; ${document.cookie}`;
+    const parts=value.split(`; ${name}`);
+    if(parts.length==2){
+      return parts.pop().split(";").shift();
+    }
+  }
+
+  const onError=(error)=>{
+    console.log("no Error ",error);
+  }
+
+  const onConnect=()=>{
+    setIsConnect(true);
+  }
+
+
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -68,6 +102,30 @@ export default function HomePage() {
     toast.success("Logout successfull")
   }
   useEffect(()=>{
+    if(message.newMessage&&stopclient){
+      setMessages(...messages,message.newMessaage);
+      stopclient?.send("/app/message",{},JSON.stringify(message.newMessaage))
+    }
+  },[message.newMessaage])
+  useEffect(()=>{
+    setMessages(message.messages);
+  },[message.messages])
+
+  const onMessageReceive = (payload) => {
+    const receivedMessage = JSON.parse(payload.body);
+    console.log("Received message:", receivedMessage);
+    setMessages((prevMessages) => [...prevMessages, receivedMessage]);
+  };
+  
+  useEffect(() => {
+    if (isConnect && stopclient && auth.reqUser && currentChat) {
+      const subscription = stopclient.subscribe("/group/" + currentChat.id.toString(), onMessageReceive);
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [isConnect, stopclient, auth.reqUser, currentChat, setMessages]);
+  useEffect(()=>{
     if(currentChat?.id)
       dispatch(getAllMessage({token,chatId:currentChat.id}))
   },[currentChat,message.newMessage])
@@ -81,6 +139,9 @@ export default function HomePage() {
   useEffect(()=>{
     if(!auth.reqUser) navigate('/signin')
   },[auth.reqUser])
+useEffect(()=>{
+  connect();
+},[])
 console.log(message.messages,message.newMessaage)
   return (
     <div className='relative text-gray-700 bg-slate-500'>
@@ -227,7 +288,7 @@ console.log(message.messages,message.newMessaage)
                   <div className='px-10 h-[85vh] overflow-y-auto bg-blue-200 '>
                     <div className='space-y-1 flex flex-col justify-center  mt-20 py-2'>
                       {
-                        message.messages?.map((items,i)=><MessageCard isRequestMesage={items?.user.id!==auth.reqUser?.id} key={i} content={items.content}/>)
+                        messages.length>0 &&messages?.map((items,i)=><MessageCard isRequestMesage={items?.user.id!==auth.reqUser?.id} key={i} content={items.content}/>)
                       }
                     </div>
                   </div>
